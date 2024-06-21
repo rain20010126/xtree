@@ -3,10 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "rbtree_int.h"
 #include "treeint_xt.h"
+#include "avltree.h"
 
 struct treeint_ops
 {
@@ -15,6 +17,7 @@ struct treeint_ops
     int (*insert)(void *, int);
     void *(*find)(void *, int);
     int (*remove)(void *, int);
+    int (*hint)(void *);
 };
 
 static struct treeint_ops *ops;
@@ -25,6 +28,7 @@ static struct treeint_ops xt_ops = {
     .insert = treeint_xt_insert,
     .find = treeint_xt_find,
     .remove = treeint_xt_remove,
+    .hint = treeint_xt_hint,
 };
 
 static struct treeint_ops rb_ops = {
@@ -108,7 +112,7 @@ int main(int argc, char *argv[])
     /* Red-black tree */
     ops = &xt_ops;
 
-    ctx = ops->init();
+    ctx = ops->init(); // pointer to xtree
 
     insert_time = 0;
     for (size_t i = 0; i < tree_size; ++i)
@@ -116,8 +120,12 @@ int main(int argc, char *argv[])
         int v = seed ? rand_key(tree_size) : i;
         insert_time += bench(ops->insert(ctx, v));
     }
+
     printf("XTree\nAverage insertion time : %lf\n",
            (double)insert_time / tree_size);
+
+    // print xtree root hint
+    ops->hint(ctx);
 
     find_time = 0;
     for (size_t i = 0; i < tree_size; ++i)
@@ -136,6 +144,37 @@ int main(int argc, char *argv[])
     printf("Average remove time : %lf\n", (double)remove_time / tree_size);
 
     ops->destroy(ctx);
+
+    /* AVL tree */
+    struct avlNode *root = NULL;
+
+    insert_time = 0;
+    for (size_t i = 0; i < tree_size; ++i)
+    {
+        int v = seed ? rand_key(tree_size) : i;
+        insert_time += bench({ root = insert(root, v); });
+    }
+
+    printf("\nAVLTree\nAverage insertion time : %lf\n",
+           (double)insert_time / tree_size);
+
+    printf("AVL Tree height : %d\n", get_avl_Height(root));
+
+    find_time = 0;
+    for (size_t i = 0; i < tree_size; ++i)
+    {
+        int v = seed ? rand_key(tree_size) : i;
+        find_time += bench(findNode(root, v));
+    }
+    printf("Average find time : %lf\n", (double)find_time / tree_size);
+
+    remove_time = 0;
+    for (size_t i = 0; i < tree_size; ++i)
+    {
+        int v = seed ? rand_key(tree_size) : i;
+        remove_time += bench({ root = deleteNode(root, v); });
+    }
+    printf("Average remove time : %lf\n", (double)remove_time / tree_size);
 
     return 0;
 }
