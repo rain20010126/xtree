@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "common.h"
 #include "treeint_xt.h"
@@ -7,7 +8,8 @@
 
 #define treeint_xt_entry(ptr) container_of(ptr, struct treeint_st, xt_n)
 
-struct treeint_st {
+struct treeint_st
+{
     int value;
     struct xt_node xt_n;
 };
@@ -15,14 +17,14 @@ struct treeint_st {
 static int treeint_xt_cmp(struct xt_node *node, void *key)
 {
     struct treeint_st *n = treeint_xt_entry(node);
-    int value = *(int *) key;
+    int value = *(int *)key;
 
     return n->value - value;
 }
 
 static struct xt_node *treeint_xt_node_create(void *key)
 {
-    int value = *(int *) key;
+    int value = *(int *)key;
     struct treeint_st *i = calloc(sizeof(struct treeint_st), 1);
     assert(i);
 
@@ -48,7 +50,7 @@ void *treeint_xt_init()
 
 int treeint_xt_destroy(void *ctx)
 {
-    struct xt_tree *tree = (struct xt_tree *) ctx;
+    struct xt_tree *tree = (struct xt_tree *)ctx;
 
     assert(tree);
     xt_destroy(tree);
@@ -57,19 +59,26 @@ int treeint_xt_destroy(void *ctx)
 
 int treeint_xt_insert(void *ctx, int a)
 {
-    struct xt_tree *tree = (struct xt_tree *) ctx;
-    return xt_insert(tree, (void *) &a);
+    struct xt_tree *tree = (struct xt_tree *)ctx;
+    return xt_insert(tree, (void *)&a);
 }
 
 void *treeint_xt_find(void *ctx, int a)
 {
-    struct xt_tree *tree = (struct xt_tree *) ctx;
-    struct xt_node *n = xt_find(tree, (void *) &a);
+    struct xt_tree *tree = (struct xt_tree *)ctx;
+    struct xt_node *n = xt_find(tree, (void *)&a);
     return n ? treeint_xt_entry(n) : NULL;
 }
 
 int treeint_xt_remove(void *ctx, int a)
 {
-    struct xt_tree *tree = (struct xt_tree *) ctx;
-    return xt_remove(tree, (void *) &a);
+    struct xt_tree *tree = (struct xt_tree *)ctx;
+    return xt_remove(tree, (void *)&a);
+}
+
+int treeint_xt_hint(void *ctx)
+{
+    struct xt_tree *tree = (struct xt_tree *)ctx;
+    struct xt_node *n = xt_root(tree);
+    printf("xtree root hint: %d\n", n->hint + 1);
 }
