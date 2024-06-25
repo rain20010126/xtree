@@ -37,7 +37,12 @@
 
 #include "xtree.h"
 
-enum xt_dir { LEFT, RIGHT, NONE };
+enum xt_dir
+{
+    LEFT,
+    RIGHT,
+    NONE
+};
 
 struct xt_tree *xt_create(cmp_t *cmp,
                           struct xt_node *(*create_node)(),
@@ -157,15 +162,21 @@ static inline void xt_update(struct xt_node **root, struct xt_node *n)
     int prev_hint = n->hint;
     struct xt_node *p = xt_parent(n);
 
-    if (b < -1) {
+    if (b < -1)
+    {
         /* leaning to the right */
+        if (xt_balance(xt_right(n)) > 0)
+            xt_rotate_left(xt_right(n));
         if (n == *root)
             *root = xt_right(n);
         xt_rotate_right(n);
     }
 
-    else if (b > 1) {
+    else if (b > 1)
+    {
         /* leaning to the left */
+        if (xt_balance(xt_left(n)) < 0)
+            xt_rotate_right(xt_left(n));
         if (n == *root)
             *root = xt_left(n);
         xt_rotate_left(n);
@@ -183,17 +194,21 @@ static struct xt_node *__xt_find(struct xt_tree *tree,
 {
     assert(p && d);
 
-    for (struct xt_node *n = xt_root(tree); n;) {
+    for (struct xt_node *n = xt_root(tree); n;)
+    {
         int cmp = tree->cmp(n, key);
         if (cmp == 0)
             return n;
 
         *p = n;
 
-        if (cmp > 0) {
+        if (cmp > 0)
+        {
             n = xt_left(n);
             *d = LEFT;
-        } else if (cmp < 0) {
+        }
+        else if (cmp < 0)
+        {
             n = xt_right(n);
             *d = RIGHT;
         }
@@ -204,14 +219,18 @@ static struct xt_node *__xt_find(struct xt_tree *tree,
 
 static struct xt_node *__xt_find2(struct xt_tree *tree, void *key)
 {
-    for (struct xt_node *n = xt_root(tree); n;) {
+    for (struct xt_node *n = xt_root(tree); n;)
+    {
         int cmp = tree->cmp(n, key);
         if (cmp == 0)
             return n;
 
-        if (cmp > 0) {
+        if (cmp > 0)
+        {
             n = xt_left(n);
-        } else if (cmp < 0) {
+        }
+        else if (cmp < 0)
+        {
             n = xt_right(n);
         }
     }
@@ -247,10 +266,12 @@ int xt_insert(struct xt_tree *tree, void *key)
         return -1;
 
     n = tree->create_node(key);
-    if (xt_root(tree)) {
+    if (xt_root(tree))
+    {
         assert(d != NONE);
         __xt_insert(&xt_root(tree), p, n, d);
-    } else
+    }
+    else
         xt_root(tree) = n;
 
     return 0;
@@ -260,7 +281,8 @@ static inline void xt_replace_right(struct xt_node *n, struct xt_node *r)
 {
     struct xt_node *p = xt_parent(n), *rp = xt_parent(r);
 
-    if (xt_left(rp) == r) {
+    if (xt_left(rp) == r)
+    {
         xt_left(rp) = xt_right(r);
         if (xt_right(r))
             xt_rparent(r) = rp;
@@ -272,7 +294,8 @@ static inline void xt_replace_right(struct xt_node *n, struct xt_node *r)
     xt_parent(r) = p;
     xt_left(r) = xt_left(n);
 
-    if (xt_right(n) != r) {
+    if (xt_right(n) != r)
+    {
         xt_right(r) = xt_right(n);
         xt_rparent(n) = r;
     }
@@ -290,7 +313,8 @@ static inline void xt_replace_left(struct xt_node *n, struct xt_node *l)
 {
     struct xt_node *p = xt_parent(n), *lp = xt_parent(l);
 
-    if (xt_right(lp) == l) {
+    if (xt_right(lp) == l)
+    {
         xt_right(lp) = xt_left(l);
         if (xt_left(l))
             xt_lparent(l) = lp;
@@ -302,7 +326,8 @@ static inline void xt_replace_left(struct xt_node *n, struct xt_node *l)
     xt_parent(l) = p;
     xt_right(l) = xt_right(n);
 
-    if (xt_left(n) != l) {
+    if (xt_left(n) != l)
+    {
         xt_left(l) = xt_left(n);
         xt_lparent(n) = l;
     }
@@ -334,7 +359,8 @@ static inline void xt_replace_left(struct xt_node *n, struct xt_node *l)
  */
 static void __xt_remove(struct xt_node **root, struct xt_node *del)
 {
-    if (xt_right(del)) {
+    if (xt_right(del))
+    {
         struct xt_node *least = xt_first(xt_right(del));
         if (del == *root)
             *root = least;
@@ -344,7 +370,8 @@ static void __xt_remove(struct xt_node **root, struct xt_node *del)
         return;
     }
 
-    if (xt_left(del)) {
+    if (xt_left(del))
+    {
         struct xt_node *most = xt_last(xt_left(del));
         if (del == *root)
             *root = most;
@@ -354,7 +381,8 @@ static void __xt_remove(struct xt_node **root, struct xt_node *del)
         return;
     }
 
-    if (del == *root) {
+    if (del == *root)
+    {
         *root = 0;
         return;
     }
